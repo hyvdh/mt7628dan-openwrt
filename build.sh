@@ -13,6 +13,11 @@
 #   ./build.sh download                预下载两套配置的全部源码
 #   ./build.sh clean | dirclean        清理
 #
+# 详细输出(排查编译问题用, 显示每条编译命令):
+#   VERBOSE=1 ./build.sh [debug|ab|download]
+#   等效于 make V=s; 不加 VERBOSE 时为默认静默模式(仅目录级进度行,
+#   出错命令仍会完整打印)
+#
 # 说明:
 #   - 调试版与AB版共用 board 名(custom,mt7628dan-dev), 网络配置相同
 #   - 下载镜像已优化(download.pl: sources.cdn.openwrt.org 队首 + GNU 国内镜像 + 停滞自断)
@@ -55,8 +60,8 @@ build_with_seed() {
 	local seed="$1" pattern="$2"
 	check_env
 	load_config "$seed"
-	echo "== 开始编译 (-j$JOBS) =="
-	make -j"$JOBS"
+	echo "== 开始编译 (-j$JOBS$( [ -n "$VERBOSE" ] && echo ' V=s详细输出' )) =="
+	make -j"$JOBS" ${VERBOSE:+V=s}
 	echo
 	echo "== 编译完成, 固件产物: =="
 	ls -lh bin/targets/ramips/mt76x8/*${pattern}squashfs-sysupgrade.bin 2>/dev/null \
@@ -102,8 +107,8 @@ cmd_download() {
 	check_env
 	for seed in "$SEED_DEBUG" "$SEED_AB"; do
 		load_config "$seed"
-		echo "== 预下载源码: $seed (-j$JOBS) =="
-		make download -j"$JOBS"
+		echo "== 预下载源码: $seed (-j$JOBS$( [ -n "$VERBOSE" ] && echo ' V=s详细输出' )) =="
+		make download -j"$JOBS" ${VERBOSE:+V=s}
 	done
 }
 

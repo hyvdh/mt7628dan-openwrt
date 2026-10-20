@@ -31,6 +31,7 @@
 | `./build.sh ab` | **生产内核 + A/B 双分区固件**：内核瘦身（镜像 ≤3.4MB），产物 `*mt7628dan_dev_ab-squashfs-sysupgrade.bin` |
 | `./build.sh menuconfig [debug\|ab]` | 菜单配置（默认 debug 种子；改动固化：`./scripts/diffconfig.sh > mt7628dan_config/<对应种子>`） |
 | `./build.sh download` | 预下载两套配置的全部源码（可先跑一遍避免编译中途等下载） |
+| `VERBOSE=1 ./build.sh [debug\|ab\|download]` | 详细模式：显示每条编译命令（等效 `make V=s`），排查编译问题用；默认静默只打印目录级进度（出错命令仍完整显示） |
 | `./build.sh clean` | 清理构建产物（保留工具链与 dl/ 下载缓存） |
 | `./build.sh dirclean` | 深度清理（保留 dl/ 下载缓存） |
 

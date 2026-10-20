@@ -146,12 +146,19 @@ menu "Target Images"
 		help
 		  Build a squashfs-lzma root filesystem.
 
-		config TARGET_SQUASHFS_BLOCK_SIZE
-			int "Block size (in KiB)"
-			depends on TARGET_ROOTFS_SQUASHFS
-			default 64 if LOW_MEMORY_FOOTPRINT
-			default 1024 if (SMALL_FLASH && !LOW_MEMORY_FOOTPRINT)
-			default 256
+	config SQUASHFS_XZ
+		bool "Use xz compression"
+		depends on TARGET_ROOTFS_SQUASHFS
+		help
+		  Compress the squashfs root filesystem with xz instead of gzip.
+		  Saves roughly 15-25% rootfs size at slightly slower boot decompression.
+
+	config TARGET_SQUASHFS_BLOCK_SIZE
+		int "Block size (in KiB)"
+		depends on TARGET_ROOTFS_SQUASHFS
+		default 64 if LOW_MEMORY_FOOTPRINT
+		default 1024 if (SMALL_FLASH && !LOW_MEMORY_FOOTPRINT)
+		default 256
 
 	menuconfig TARGET_ROOTFS_UBIFS
 		bool "ubifs"

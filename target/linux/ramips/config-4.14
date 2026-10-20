@@ -1,0 +1,10 @@
+# MT7628DAN-DEV 内核配置覆盖(叠加在 generic/config-4.14 之上)
+# 目的: 压缩内核体积以满足 8MB flash A/B 双槽预算
+
+# eBPF 子系统(验证器+JIT)无人使用, 4.14 中占用可观; cBPF 基础(CONFIG_BPF)保留
+# CONFIG_BPF_SYSCALL is not set
+# CONFIG_BPF_JIT is not set
+
+# JFFS2 附加特性: XATTR 与 LZMA 压缩非必需(overlay 默认 zlib), rootfs_data 全新格式化无兼容问题
+# CONFIG_JFFS2_FS_XATTR is not set
+# CONFIG_JFFS2_LZMA is not set

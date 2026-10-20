@@ -1,0 +1,26 @@
+/dts-v1/;
+
+/*
+ * MT7628DAN-DEV A/B 双槽变体(生产):
+ *   槽A firmware_a @0x50000, 4MB    —— U-Boot AB_SLOT_A_ADDR(0xBC050000)
+ *   槽B firmware_b @0x450000, 3776K —— U-Boot AB_SLOT_B_ADDR(0xBC450000)
+ * 两槽均带 denx,uimage, mtdsplit 在各自槽内自动切分 kernel/rootfs/rootfs_data
+ */
+#include "MT7628DAN-DEV.dtsi"
+
+/ {
+};
+
+&partitions {
+	partition@50000 {
+		compatible = "denx,uimage";
+		label = "firmware_a";
+		reg = <0x50000 0x400000>;
+	};
+
+	partition@450000 {
+		compatible = "denx,uimage";
+		label = "firmware_b";
+		reg = <0x450000 0x3b0000>;
+	};
+};

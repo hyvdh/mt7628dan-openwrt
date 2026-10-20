@@ -1,0 +1,71 @@
+/*
+ * MT7628DAN-DEV 公共部分: MT7628DAN, 64MB DDR2, 8MB SPI flash
+ * 板名(运行时)取自 compatible 首字符串: custom,mt7628dan-dev
+ * 固件分区布局由变体 dts 定义:
+ *   MT7628DAN-DEV.dts    单 firmware 分区(调试/日常)
+ *   MT7628DAN-DEV-AB.dts A/B 双槽分区(生产, 与 U-Boot AB_SLOT_BOOT 地址对齐)
+ */
+
+#include "mt7628an.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	compatible = "custom,mt7628dan-dev", "mediatek,mt7628an-soc";
+	model = "MT7628DAN-DEV (64MB DDR2, 8MB SPI)";
+
+	chosen {
+		bootargs = "console=ttyS0,115200";
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x4000000>;
+	};
+};
+
+&spi0 {
+	status = "okay";
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi_pins>;
+
+	m25p80@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <40000000>;
+
+		partitions: partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot";
+				reg = <0x0 0x30000>;
+				read-only;
+			};
+
+			partition@30000 {
+				label = "u-boot-env";
+				reg = <0x30000 0x10000>;
+				read-only;
+			};
+
+			factory: partition@40000 {
+				label = "factory";
+				reg = <0x40000 0x10000>;
+				read-only;
+			};
+		};
+	};
+};
+
+&ethernet {
+	mtd-mac-address = <&factory 0x28>;
+};
+
+&wmac {
+	status = "okay";
+};

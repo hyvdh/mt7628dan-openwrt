@@ -1,0 +1,8 @@
+CONFIG_TARGET_ramips=y
+CONFIG_TARGET_ramips_mt76x8=y
+CONFIG_TARGET_ramips_mt76x8_DEVICE_mt7628dan_dev=y
+CONFIG_SQUASHFS_XZ=y
+# 调试内核: 保留符号表(oops可读)/debugfs/魔术键, 便于开发调试
+CONFIG_KERNEL_KALLSYMS=y
+CONFIG_KERNEL_DEBUG_FS=y
+CONFIG_KERNEL_MAGIC_SYSRQ=y

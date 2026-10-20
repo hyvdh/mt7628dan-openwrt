@@ -1,0 +1,9 @@
+CONFIG_TARGET_ramips=y
+CONFIG_TARGET_ramips_mt76x8=y
+CONFIG_TARGET_ramips_mt76x8_DEVICE_mt7628dan_dev_ab=y
+CONFIG_SQUASHFS_XZ=y
+# 生产内核瘦身(镜像≤3.4MB, 满足A/B双槽预算)
+# CONFIG_KERNEL_KALLSYMS is not set
+# CONFIG_KERNEL_DEBUG_FS is not set
+# CONFIG_KERNEL_MAGIC_SYSRQ is not set
+# CONFIG_KERNEL_SWAP is not set

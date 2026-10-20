@@ -486,3 +486,19 @@ define Device/zyxel_keenetic-extra-ii
 	check-size $$$$(IMAGE_SIZE) | zyimage -d 6162 -v "ZyXEL Keenetic Extra II"
 endef
 TARGET_DEVICES += zyxel_keenetic-extra-ii
+
+define Device/mt7628dan_dev
+  DTS := MT7628DAN-DEV
+  BLOCKSIZE := 4k
+  IMAGE_SIZE := $(ralink_default_fw_size_8M)
+  DEVICE_TITLE := Custom MT7628DAN-DEV (64MB DDR2, 8MB SPI, single partition)
+endef
+TARGET_DEVICES += mt7628dan_dev
+
+define Device/mt7628dan_dev_ab
+  DTS := MT7628DAN-DEV-AB
+  BLOCKSIZE := 4k
+  IMAGE_SIZE := 3776k
+  DEVICE_TITLE := Custom MT7628DAN-DEV (A/B dual slot, 8MB SPI)
+endef
+TARGET_DEVICES += mt7628dan_dev_ab

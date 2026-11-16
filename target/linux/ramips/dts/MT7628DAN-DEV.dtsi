@@ -13,15 +13,15 @@
 
 / {
 	compatible = "custom,mt7628dan-dev", "mediatek,mt7628an-soc";
-	model = "MT7628DAN-DEV (64MB DDR2, 8MB SPI)";
+	model = "MT7628DAN-DEV (128MB DDR2, 16MB SPI)";
 
 	chosen {
-		bootargs = "console=ttyS0,115200";
+		bootargs = "console=ttyS0,57600 root=/dev/mtdblock5 rootwait";
 	};
 
 	memory@0 {
 		device_type = "memory";
-		reg = <0x0 0x4000000>;
+		reg = <0x0 0x8000000>;
 	};
 };
 
@@ -66,6 +66,143 @@
 	mtd-mac-address = <&factory 0x28>;
 };
 
+&esw {
+	/* 端口0=WAN, 1-4=LAN (WLLLLL) */
+	mediatek,portmap = <0x3e>;
+};
+
+/*
+ * CH9437F 八串口扩展: UART1(0x10000d00, 500Kbps) 为扩展芯片主控链路。
+ * 串口0 = 主控接口; 串口1~7 挂外设, 每通道一个 serdev 控制器。
+ * 485方向: 串口2 = TNOW2(PIN1, 硬件自动);
+ *          串口6 = GPIO5(PIN3, 软件手动, TNOW4 属于UART4 不可用于UART6)。
+ * 无设备子节点的通道回落为 /dev/ttyCHn 调试口。
+ */
+&uart1 {
+	compatible = "wch,ch9437f";
+	status = "okay";
+	current-speed = <500000>;
+	wch,external-clock;
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	serial@1 {
+		reg = <1>;
+		ws63 {
+			compatible = "custom,m528h-ws63";
+		};
+	};
+
+	serial@2 {
+		reg = <2>;
+		wch,rs485-auto;
+		rs485 {
+			compatible = "custom,rs485";
+		};
+	};
+
+	serial@3 {
+		reg = <3>;
+		rv1106 {
+			compatible = "custom,rv1106-link";
+		};
+	};
+
+	serial@4 {
+		reg = <4>;
+		mcu3 {
+			compatible = "custom,n32s032-u3";
+		};
+	};
+
+	serial@5 {
+		reg = <5>;
+		mcu0 {
+			compatible = "custom,n32s032-u0";
+		};
+	};
+
+	serial@6 {
+		reg = <6>;
+		wch,rs485-gpio = <5>;
+		rs485 {
+			compatible = "custom,rs485";
+		};
+	};
+
+	serial@7 {
+		reg = <7>;
+		current-speed = <9600>;
+		gps {
+			compatible = "custom,atgm336h";
+		};
+	};
+};
+
 &wmac {
 	status = "okay";
+};
+
+/*
+ * Audio: ES8311 codec on I2C (pin24 SCL / pin25 SDA = GPIO4/5).
+ * MCLK pin is floating on this board -> "mclk-from-bclk" makes the
+ * codec derive its system clock from BCLK (REG01 bit7).
+ */
+&i2c {
+	status = "okay";
+
+	es8311: es8311@18 {
+		compatible = "everest,es8311";
+		reg = <0x18>;		/* CE pin grounded -> 0x18 */
+		#sound-dai-cells = <0>;
+		mclk-from-bclk;
+		dac-volume = <192>;
+	};
+};
+
+&i2s {
+	#sound-dai-cells = <0>;
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2s_pins>;
+};
+
+/* ralink-i2s requests its DMA channels from gdma */
+&gdma {
+	status = "okay";
+};
+
+/* MT7628 is I2S bit-clock and frame master, ES8311 is slave */
+/ {
+	sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "mt7628-es8311";
+		simple-audio-card,format = "i2s";
+
+		simple-audio-card,bitclock-master = <&cpu_dai>;
+		simple-audio-card,frame-master = <&cpu_dai>;
+
+		cpu_dai: simple-audio-card,cpu {
+			sound-dai = <&i2s>;
+		};
+
+		simple-audio-card,codec {
+			sound-dai = <&es8311>;
+		};
+	};
+};
+
+/*
+ * pinctrl: mt7628an.dtsi 的 state_default 为空,
+ * kernel 4.14 pinctrl-rt2880.c 对空节点返回 -EINVAL(-22),
+ * 导致 pinctrl/UART/SPI 全部 probe 失败。
+ * 必须覆盖为至少含一个组。gpio 组不与任何驱动冲突(仅设置空闲引脚为GPIO模式)。
+ */
+&pinctrl {
+	state_default: pinctrl0 {
+		gpio {
+			ralink,group = "gpio";
+			ralink,function = "gpio";
+		};
+	};
 };

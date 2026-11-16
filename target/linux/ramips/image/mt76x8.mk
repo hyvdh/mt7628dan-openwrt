@@ -490,8 +490,9 @@ TARGET_DEVICES += zyxel_keenetic-extra-ii
 define Device/mt7628dan_dev
   DTS := MT7628DAN-DEV
   BLOCKSIZE := 4k
-  IMAGE_SIZE := $(ralink_default_fw_size_8M)
-  DEVICE_TITLE := Custom MT7628DAN-DEV (64MB DDR2, 8MB SPI, single partition)
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Custom MT7628DAN-DEV (128MB DDR2, 16MB SPI, single partition)
+  SUPPORTED_DEVICES := custom,mt7628dan-dev
 endef
 TARGET_DEVICES += mt7628dan_dev
 
@@ -500,5 +501,6 @@ define Device/mt7628dan_dev_ab
   BLOCKSIZE := 4k
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := Custom MT7628DAN-DEV (A/B dual slot, 8MB SPI)
+  SUPPORTED_DEVICES := custom,mt7628dan-dev
 endef
 TARGET_DEVICES += mt7628dan_dev_ab

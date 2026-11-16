@@ -1,8 +1,8 @@
 /dts-v1/;
 
 /*
- * MT7628DAN-DEV 单分区变体(调试/日常):
- *   firmware @0x50000, 7872K —— 全部剩余空间为一个固件分区
+ * MT7628DAN-DEV 单分区变体(16MB flash, 128MB DDR2):
+ *   firmware @0x50000, 0xFB0000 —— 16MB 全部剩余空间为一个固件分区
  */
 #include "MT7628DAN-DEV.dtsi"
 
@@ -13,6 +13,6 @@
 	partition@50000 {
 		compatible = "denx,uimage";
 		label = "firmware";
-		reg = <0x50000 0x7b0000>;
+		reg = <0x50000 0xfb0000>;
 	};
 };

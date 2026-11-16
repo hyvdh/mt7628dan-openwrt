@@ -8,3 +8,30 @@
 # JFFS2 附加特性: XATTR 与 LZMA 压缩非必需(overlay 默认 zlib), rootfs_data 全新格式化无兼容问题
 # CONFIG_JFFS2_FS_XATTR is not set
 # CONFIG_JFFS2_LZMA is not set
+
+# CH9437F serial expansion: serdev bus support for in-kernel consumers
+CONFIG_SERIAL_DEV_BUS=y
+# 我们自建 serdev 控制器, 不需要 ttyport 胶水层
+# CONFIG_SERIAL_DEV_CTRL_TTYPORT is not set
+
+# 音频子系统: MT7628 I2S (ralink-i2s) + ES8311 codec + simple-card 声卡
+# ES8311 经 I2C 控制 (pin24/25 = GPIO4/5), MCLK 悬空用 mclk-from-bclk
+CONFIG_SOUND=y
+CONFIG_SOUND_OSS_CORE_PRECLAIM=y
+CONFIG_SND=y
+CONFIG_SND_SOC=y
+CONFIG_SND_RALINK_SOC_I2S=y
+CONFIG_SND_SIMPLE_CARD=y
+CONFIG_SND_SOC_ES8311=y
+# I2C: i2c-mt7621 控制器 + chardev (i2cdetect 式扫描调试用)
+CONFIG_I2C=y
+CONFIG_I2C_CHARDEV=y
+CONFIG_I2C_MT7621=y
+# ralink-i2s 依赖 gdma (dmas = <&gdma 4>, <&gdma 6>)
+CONFIG_DMADEVICES=y
+CONFIG_DMA_ENGINE=y
+CONFIG_DMA_RALINK=y
+
+# /dev/mem: ES8311 调试需要直读 I2S/SYSC/GPIO 寄存器 + GPIO 重映射采样 BCLK
+CONFIG_DEVMEM=y
+# CONFIG_IO_STRICT_DEVMEM is not set

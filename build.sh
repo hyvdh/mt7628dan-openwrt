@@ -60,6 +60,8 @@ build_with_seed() {
 	local seed="$1" pattern="$2"
 	check_env
 	load_config "$seed"
+	echo "== 强制重编内核(确保EPHY补丁等源码修改生效) =="
+	make target/linux/clean 2>/dev/null || true
 	echo "== 开始编译 (-j$JOBS$( [ -n "$VERBOSE" ] && echo ' V=s详细输出' )) =="
 	make -j"$JOBS" ${VERBOSE:+V=s}
 	echo

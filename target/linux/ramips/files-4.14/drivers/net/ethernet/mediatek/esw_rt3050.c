@@ -613,9 +613,24 @@ static void esw_hw_init(struct rt305x_esw *esw)
 		rt305x_mii_write(esw, 0, 31, 0x8000);
 	} else if (ralink_soc == MT762X_SOC_MT7628AN || ralink_soc == MT762X_SOC_MT7688) {
 		int i;
+		u32 reg;
+
+		/* AGPIO_CFG (SYSC + 0x3c): analog pad select for all five
+		 * EPHYs (bit16 = EPHY0, bits [20:17] = EPHY1..4)
+		 */
+		reg = rt_sysc_r32(0x3c);
+		reg &= ~0x1f0000;
+		rt_sysc_w32(reg, 0x3c);
 
 		/* reset EPHY */
 		fe_reset(RT5350_RESET_EPHY);
+
+		/* GPIOMODE2 (SYSC + 0x64): EPHY LED pins to LED function */
+		reg = rt_sysc_r32(0x64);
+		reg &= 0xf003f003;
+		rt_sysc_w32(reg, 0x64);
+
+		udelay(5000);
 
 		rt305x_mii_write(esw, 0, 31, 0x2000); /* change G2 page */
 		rt305x_mii_write(esw, 0, 26, 0x0020);
@@ -648,6 +663,11 @@ static void esw_hw_init(struct rt305x_esw *esw)
 		rt305x_mii_write(esw, 0, 28, 0x0233);
 		rt305x_mii_write(esw, 0, 29, 0x000a);
 		rt305x_mii_write(esw, 0, 30, 0x0000);
+
+		/* Fix EPHY idle state abnormal behavior */
+		rt305x_mii_write(esw, 0, 31, 0x4000); /* change G4 page */
+		rt305x_mii_write(esw, 0, 29, 0x000d);
+		rt305x_mii_write(esw, 0, 30, 0x0500);
 	} else {
 		rt305x_mii_write(esw, 0, 31, 0x8000);
 		for (i = 0; i < 5; i++) {

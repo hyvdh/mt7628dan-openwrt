@@ -392,20 +392,19 @@ static int es8311_pcm_startup(struct snd_pcm_substream *substream,
 		clk_prepare_enable(es8311->mclk_in);
 
 	/*
-	 * Power up the analog section while a stream is active.
-	 * REG0D [1:0] VMIDSEL: 0 = power down, 2 = normal operation.
+	 * Restore normal operation.  The idle state kept VMID weakly
+	 * biased with every generator powered, so the only real
+	 * transition here is VMIDSEL 1 -> 2 (measured silent); the
+	 * REG12/REG31 writes are idempotent (this driver never mutes
+	 * or powers the DAC down anymore).  The first open after boot
+	 * comes from REG0D=0x00 (regs_init): that charge transition
+	 * is silent as well (measured), and the application plays a
+	 * leading silence covering the settle window.
 	 */
 	snd_soc_component_write(component, ES8311_SYSTEM_REG0D, 0x02);
-
-	/*
-	 * Undo the pop-free shutdown state: the last stream close
-	 * muted the DAC (REG12 + REG31 DSM mute) and that state
-	 * persists in the registers -- release it before this
-	 * stream starts, mirroring the es8311_mute(unmute) order.
-	 */
+	snd_soc_component_write(component, ES8311_SYSTEM_REG12, 0x00);
 	snd_soc_component_update_bits(component,
 			ES8311_DAC_REG31, 0x60, 0x00);
-	snd_soc_component_write(component, ES8311_SYSTEM_REG12, 0x00);
 
 	return 0;
 }
@@ -420,27 +419,24 @@ static void es8311_pcm_shutdown(struct snd_pcm_substream *substream,
 		clk_disable_unprepare(es8311->mclk_in);
 
 	/*
-	 * Pop-free power-down on the last stream close.
+	 * Pop-free low-power idle on the last stream close.
 	 *
-	 * The codec is unclocked at idle (system clock comes from
-	 * BCLK) and a powered-but-unclocked analog stage outputs
-	 * noise, so the analog section must eventually be dropped
-	 * (REG0D [1:0] VMIDSEL: 0 = power down).  But powering VMID
-	 * down while the output stage is still active produces an
-	 * audible thump through the amplifier, so first mute the DAC
-	 * (same register sequence as es8311_mute), give the output
-	 * time to settle, and only then drop the analog section.
+	 * Empirical rules measured on this board (always-on amplifier,
+	 * cap-coupled output): EVERY power-down transition of the
+	 * reference chain is audible -- the REG31 mute assert (0x60,
+	 * a hard output-domain switch), REG12 PDN_DAC, the staged
+	 * reference power-downs (REG0D=0x4D, 0x09) and the VMID
+	 * collapse (REG0D=0x00) all thump, while power-up transitions
+	 * are silent (soft-start).  The ONLY silent power-down recipe
+	 * is dropping VMID from normal to weak bias (VMIDSEL 2 -> 1):
+	 * VMID stays charged, so the output DC operating point does
+	 * not move.
 	 *
 	 * dai->active has already been decremented by the time this
 	 * runs (soc_pcm_close ordering in 4.14).
 	 */
-	if (!dai->active) {
-		snd_soc_component_write(component, ES8311_SYSTEM_REG12, 0x02);
-		snd_soc_component_update_bits(component,
-				ES8311_DAC_REG31, 0x60, 0x60);
-		msleep(150);
-		snd_soc_component_write(component, ES8311_SYSTEM_REG0D, 0x00);
-	}
+	if (!dai->active)
+		snd_soc_component_write(component, ES8311_SYSTEM_REG0D, 0x01);
 }
 
 /*
